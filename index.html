@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Someone Precious 🌹</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;500;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-red: #730d1e;
+            --secondary-red: #1a0508;
+            --text-light: #f5f5f5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, var(--primary-red) 0%, var(--secondary-red) 100%);
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            touch-action: manipulation;
+        }
+
+        /* حاوية الصفحة الأولى بنمط Glassmorphism فخم */
+        #page1 {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 50px 30px;
+            border-radius: 40px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.05);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 85%;
+            max-width: 450px;
+            z-index: 10;
+            animation: fadeIn 1.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        h1 { 
+            color: var(--text-light); 
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem; 
+            margin-bottom: 40px;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .buttons { display: flex; justify-content: center; gap: 20px; min-height: 120px; position: relative; }
+        
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        #yesBtn { 
+            background: linear-gradient(145deg, #d63031, #8e0e00);
+            color: white;
+            box-shadow: 0 10px 25px rgba(214, 48, 49, 0.4);
+        }
+
+        #noBtn { 
+            background: rgba(255,255,255,0.1);
+            color: #bdc3c7; 
+            border: 1px solid rgba(255,255,255,0.05);
+            position: absolute;
+            backdrop-filter: blur(5px);
+        }
+
+        #page2 {
+            display: none;
+            text-align: center;
+            width: 90%;
+            z-index: 10;
+        }
+
+        #typewriter {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-style: italic;
+            color: #ffcccc;
+            min-height: 5rem;
+            line-height: 1.5;
+            text-shadow: 0 0 20px rgba(255, 204, 204, 0.3);
+        }
+
+        .thanks-msg {
+            color: white;
+            font-size: 2.2rem;
+            font-family: 'Amiri', serif;
+            opacity: 0;
+            margin-top: 30px;
+            line-height: 1.6;
+            text-shadow: 0 0 20px #d63031;
+            transform: translateY(20px);
+            transition: all 2s ease;
+        }
+
+        .show-thanks { opacity: 1 !important; transform: translateY(0); }
+
+        .heart-particle {
+            position: absolute;
+            color: #d63031;
+            pointer-events: none;
+            z-index: 1;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); opacity: 0; } }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.6rem; }
+            #typewriter { font-size: 1.5rem; }
+            .thanks-msg { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="page1">
+        <h1>Do you want to continue?</h1>
+        <div class="buttons">
+            <button class="btn" id="yesBtn" onclick="initiateSequence()">Yes</button>
+            <button class="btn" id="noBtn" onmouseover="teleport()" ontouchstart="teleport()">No</button>
+        </div>
+    </div>
+
+    <div id="page2">
+        <div id="typewriter"></div>
+        <div id="finalMsg" class="thanks-msg">
+            أرامي... <br> شكراً لكي لأنكِ موجودة ❤️
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <script>
+        function teleport() {
+            const btn = document.getElementById('noBtn');
+            const padding = 60;
+            const x = Math.random() * (window.innerWidth - btn.offsetWidth - padding);
+            const y = Math.random() * (window.innerHeight - btn.offsetHeight - padding);
+            
+            btn.style.position = "fixed";
+            btn.style.left = x + "px";
+            btn.style.top = y + "px";
+            btn.style.transition = "all 0.2s ease";
+        }
+
+        function initiateSequence() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#d63031', '#ffffff', '#8e0e00']
+            });
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'block';
+            startStory();
+        }
+
+        const lines = [
+            "I know things might be different...",
+            "But some people are just too special to let go.",
+            "Stay amazing, just the way you are."
+        ];
+        
+        let lIdx = 0, cIdx = 0;
+
+        function startStory() {
+            const box = document.getElementById('typewriter');
+            if (cIdx < lines[lIdx].length) {
+                box.innerHTML += lines[lIdx].charAt(cIdx);
+                cIdx++;
+                setTimeout(startStory, 60);
+            } else {
+                setTimeout(nextPart, 2000);
+            }
+        }
+
+        function nextPart() {
+            const box = document.getElementById('typewriter');
+            if (cIdx > 0) {
+                box.innerHTML = lines[lIdx].substring(0, cIdx - 1);
+                cIdx--;
+                setTimeout(nextPart, 30);
+            } else {
+                lIdx++;
+                if (lIdx < lines.length) {
+                    setTimeout(startStory, 500);
+                } else {
+                    document.getElementById('finalMsg').classList.add('show-thanks');
+                    spawnHearts();
+                }
+            }
+        }
+
+        function spawnHearts() {
+            for(let i=0; i<40; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart-particle';
+                    heart.innerHTML = '❤️';
+                    heart.style.left = Math.random() * 100 + 'vw';
+                    heart.style.top = '-20px';
+                    heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                    heart.style.animation = `fall ${Math.random() * 3 + 3}s linear forwards`;
+                    document.body.appendChild(heart);
+                }, i * 250);
+            }
+        }
+    </script>
+</body>
+</html>

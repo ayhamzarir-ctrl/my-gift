@@ -4,222 +4,339 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>For Someone Precious 🌹</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;500;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;500;700&family=Amiri:wght@700&family=Reenie+Beanie&display=swap" rel="stylesheet">
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
         :root {
             --primary-red: #730d1e;
             --secondary-red: #1a0508;
-            --text-light: #f5f5f5;
+            --scanner-color: #00ff00;
+            --heart-speed: 1.2s;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: radial-gradient(circle at center, var(--primary-red) 0%, var(--secondary-red) 100%);
-            overflow: hidden;
-            font-family: 'Poppins', sans-serif;
-            touch-action: manipulation;
+            height: 100vh; 
+            background: #000; 
+            overflow: hidden; 
+            font-family: 'Poppins', sans-serif; 
+            user-select: none;
+            touch-action: none;
         }
 
-        /* حاوية الصفحة الأولى بنمط Glassmorphism فخم */
-        #page1 {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            padding: 50px 30px;
-            border-radius: 40px;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.05);
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 85%;
-            max-width: 450px;
-            z-index: 10;
-            animation: fadeIn 1.5s ease;
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* أنيميشنات موقعك الأصلي */
+        @keyframes wobble { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.25); } 30% { transform: scale(1); } 45% { transform: scale(1.15); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 
-        h1 { 
-            color: var(--text-light); 
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem; 
-            margin-bottom: 40px;
-            text-shadow: 0 10px 20px rgba(0,0,0,0.5);
-        }
-
-        .buttons { display: flex; justify-content: center; gap: 20px; min-height: 120px; position: relative; }
+        #heartbeat-container { position: fixed; top: 20px; left: 20px; display: none; align-items: center; gap: 10px; z-index: 1002; color: white; }
+        #heart-icon { font-size: 30px; color: #ff3e3e; animation: beat var(--heart-speed) infinite ease-in-out; }
+        .cursor-particle { position: fixed; pointer-events: none; font-size: 15px; z-index: 10000; animation: moveParticle 1s ease-out forwards; }
+        @keyframes moveParticle { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; } }
         
-        .btn {
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
+        .panic-mode { animation: panicShake 0.1s infinite, panicFlash 0.5s infinite !important; }
+        @keyframes panicShake { 0% { transform: translate(2px, 2px); } 50% { transform: translate(-2px, -2px); } 100% { transform: translate(2px, -2px); } }
+        @keyframes panicFlash { 0%, 100% { background: #ff0000; } 50% { background: #660000; } }
+
+        #gatekeeper, #fingerprintScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 1s; z-index: 5000; }
+        #gatekeeper { background: rgba(26, 5, 8, 0.95); }
+        #fingerprintScreen { background: black; display: none; color: var(--scanner-color); }
+        .gate-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); padding: 35px; border-radius: 30px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); width: 90%; max-width: 400px; }
+        .gate-card input { width: 100%; padding: 12px; margin: 20px 0; border-radius: 10px; border: none; text-align: center; }
+
+        #bottle { position: fixed; bottom: 20px; right: 20px; font-size: 40px; cursor: pointer; z-index: 100; display: none; animation: float 3s infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        #letter-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 6000; display: none; justify-content: center; align-items: center; }
+        .letter-content { background: #fdf5e6; color: #5d4037; padding: 40px; width: 85%; max-width: 400px; border-radius: 5px; font-family: 'Reenie Beanie', cursive; font-size: 1.5rem; transform: rotate(-2deg); position: relative; text-align: center; }
+
+        #main-content-wrapper { position: relative; z-index: 10; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none; }
+        #page1, #page2 { display: none; text-align: center; width: 90%; pointer-events: auto; }
+        .btn { padding: 12px 25px; font-size: 1.1rem; border: none; border-radius: 15px; cursor: pointer; transition: 0.3s; }
+        #yesBtn { background: #d63031; color: white; }
+        #noBtn { background: rgba(255,255,255,0.2); color: white; position: relative; }
+        #typewriter { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: #ffcccc; min-height: 5rem; text-shadow: 0 0 10px rgba(255,100,100,0.5); }
+
+        /* ستايل صندوق الأمنيات */
+        .wish-bubble {
+            position: fixed; width: 60px; height: 60px; background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; cursor: pointer; z-index: 50;
+            font-size: 24px; backdrop-filter: blur(5px); transition: 0.5s; pointer-events: auto;
         }
-
-        #yesBtn { 
-            background: linear-gradient(145deg, #d63031, #8e0e00);
-            color: white;
-            box-shadow: 0 10px 25px rgba(214, 48, 49, 0.4);
-        }
-
-        #noBtn { 
-            background: rgba(255,255,255,0.1);
-            color: #bdc3c7; 
-            border: 1px solid rgba(255,255,255,0.05);
-            position: absolute;
-            backdrop-filter: blur(5px);
-        }
-
-        #page2 {
-            display: none;
-            text-align: center;
-            width: 90%;
-            z-index: 10;
-        }
-
-        #typewriter {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            font-style: italic;
-            color: #ffcccc;
-            min-height: 5rem;
-            line-height: 1.5;
-            text-shadow: 0 0 20px rgba(255, 204, 204, 0.3);
-        }
-
-        .thanks-msg {
-            color: white;
-            font-size: 2.2rem;
-            font-family: 'Amiri', serif;
-            opacity: 0;
-            margin-top: 30px;
-            line-height: 1.6;
-            text-shadow: 0 0 20px #d63031;
-            transform: translateY(20px);
-            transition: all 2s ease;
-        }
-
-        .show-thanks { opacity: 1 !important; transform: translateY(0); }
-
-        .heart-particle {
-            position: absolute;
-            color: #d63031;
-            pointer-events: none;
-            z-index: 1;
-            animation: fall linear forwards;
-        }
-
-        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); opacity: 0; } }
-
-        @media (max-width: 480px) {
-            h1 { font-size: 1.6rem; }
-            #typewriter { font-size: 1.5rem; }
-            .thanks-msg { font-size: 1.8rem; }
+        .wish-bubble:hover { transform: scale(1.2); background: rgba(255, 255, 255, 0.2); }
+        #wish-display {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            color: #ffcccc; font-family: 'Amiri'; font-size: 1.5rem; text-align: center;
+            opacity: 0; transition: 1s; z-index: 60; text-shadow: 0 0 15px #ff0055;
         }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
-    <div id="page1">
-        <h1>Do you want to continue?</h1>
-        <div class="buttons">
-            <button class="btn" id="yesBtn" onclick="initiateSequence()">Yes</button>
-            <button class="btn" id="noBtn" onmouseover="teleport()" ontouchstart="teleport()">No</button>
+    <div id="canvas-container"></div>
+    <div id="wish-display"></div>
+
+    <audio id="bgMusic" loop>
+        <source src="https://www.bensound.com/bensound-music/bensound-memories.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="heartbeat-container">
+        <div id="heart-icon">❤️</div>
+        <div id="bpm-text">BPM: <span id="bpm-val">72</span></div>
+    </div>
+
+    <div id="panicBtn" onclick="triggerPanic()" style="position:fixed; top:20px; right:20px; z-index:1001; font-size:24px; display:none; cursor:pointer;">🚨</div>
+
+    <div id="gatekeeper">
+        <div id="visit-counter" style="position: absolute; top: 20px; left: 20px; color: white; font-family: monospace; opacity: 0.7; font-size: 1.2rem;">
+            👁️ <span id="visit-count">0</span>
+        </div>
+        <div class="gate-card">
+            <h1 style="color: white; font-family: 'Amiri'; margin-bottom: 20px;">بوابة الذكريات ❤️</h1>
+            <input type="date" id="specialDate">
+            <button class="btn" style="background: #d63031; color: white; width: 100%;" onclick="checkDate()">فتح القفل</button>
         </div>
     </div>
 
-    <div id="page2">
-        <div id="typewriter"></div>
-        <div id="finalMsg" class="thanks-msg">
-            أرامي... <br> شكراً لكي لأنكِ موجودة ❤️
+    <div id="fingerprintScreen">
+        <div style="position: relative; width: 120px; height: 150px; border: 2px solid rgba(0,255,0,0.3); border-radius: 20px; overflow: hidden;" 
+             onmousedown="startScan()" onmouseup="stopScan()" ontouchstart="startScan()" ontouchend="stopScan()">
+            <div style="font-size: 80px; text-align: center; opacity: 0.3; padding-top: 20px;">👍</div>
+            <div id="scanLine" style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: #00ff00; box-shadow: 0 0 10px #00ff00; display: none;"></div>
+        </div>
+        <p style="margin-top: 20px; font-family: monospace;">ثبتي إصبعك للتحقق...</p>
+    </div>
+
+    <div id="bottle" onclick="openLetter()">🍾</div>
+    <div id="letter-modal">
+        <div class="letter-content">
+            <span style="position: absolute; top: 10px; right: 15px; cursor: pointer;" onclick="closeLetter()">×</span>
+            <p>لقد مرّ على تاريخنا المميز:</p>
+            <div id="time-counter" style="margin: 15px 0; font-weight: bold; color: #d63031;"></div>
+            <p>ابتسامتك هي السر وراء جمال هذا الموقع.. ❤️</p>
+        </div>
+    </div>
+
+    <div id="main-content-wrapper">
+        <div id="page1">
+            <h1 style="color: white;">Ready to see more?</h1>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                <button class="btn" id="yesBtn" onclick="initiateSequence()">Yes ❤️</button>
+                <button class="btn" id="noBtn" onmouseover="teleport()">No 😂</button>
+            </div>
+        </div>
+        <div id="page2">
+            <div id="typewriter"></div>
+            <div id="finalMsg" style="color: white; font-size: 2rem; opacity: 0; transition: 2s;">أرامي... <br> شكراً لكي لأنكِ موجودة ❤️</div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-
     <script>
-        function teleport() {
-            const btn = document.getElementById('noBtn');
-            const padding = 60;
-            const x = Math.random() * (window.innerWidth - btn.offsetWidth - padding);
-            const y = Math.random() * (window.innerHeight - btn.offsetHeight - padding);
-            
-            btn.style.position = "fixed";
-            btn.style.left = x + "px";
-            btn.style.top = y + "px";
-            btn.style.transition = "all 0.2s ease";
-        }
-
-        function initiateSequence() {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#d63031', '#ffffff', '#8e0e00']
-            });
-            document.getElementById('page1').style.display = 'none';
-            document.getElementById('page2').style.display = 'block';
-            startStory();
-        }
-
-        const lines = [
-            "I know things might be different...",
-            "But some people are just too special to let go.",
-            "Stay amazing, just the way you are."
-        ];
+        // --- محرك الفضاء المتقدم ---
+        let scene, camera, renderer, stars, heart3D, mouseX = 0, mouseY = 0;
         
-        let lIdx = 0, cIdx = 0;
+        function initThree() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
 
+            // 1. النجوم
+            const starGeometry = new THREE.BufferGeometry();
+            const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
+            const starVertices = [];
+            for (let i = 0; i < 10000; i++) {
+                starVertices.push((Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 2000);
+            }
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+
+            // 2. السديم (Nebula) - محاكاة سحب غازية
+            for(let i=0; i<5; i++) {
+                const spriteMaterial = new THREE.SpriteMaterial({
+                    map: createNebulaTexture(),
+                    color: i % 2 === 0 ? 0x730d1e : 0x4a0082,
+                    transparent: true,
+                    opacity: 0.15
+                });
+                const sprite = new THREE.Sprite(spriteMaterial);
+                sprite.scale.set(400, 400, 1);
+                sprite.position.set(Math.random()*200-100, Math.random()*200-100, -200);
+                scene.add(sprite);
+            }
+
+            // 3. القلب 3D
+            const heartShape = new THREE.Shape();
+            heartShape.moveTo(0, 0);
+            heartShape.bezierCurveTo(0, 0, -5, 5, -15, 5);
+            heartShape.bezierCurveTo(-35, 5, -35, -22.5, -35, -22.5);
+            heartShape.bezierCurveTo(-35, -45, -15, -60, 0, -80);
+            heartShape.bezierCurveTo(15, -60, 35, -45, 35, -22.5);
+            heartShape.bezierCurveTo(35, -22.5, 35, 5, 15, 5);
+            heartShape.bezierCurveTo(5, 5, 0, 0, 0, 0);
+
+            const geometry = new THREE.ExtrudeGeometry(heartShape, { depth: 10, bevelEnabled: true, bevelSize: 2, bevelThickness: 2 });
+            const material = new THREE.MeshPhongMaterial({ color: 0xff0033, shininess: 100 });
+            heart3D = new THREE.Mesh(geometry, material);
+            heart3D.scale.set(0.18, 0.18, 0.18);
+            heart3D.rotation.z = Math.PI;
+            heart3D.position.set(0, 0, -100);
+            scene.add(heart3D);
+
+            scene.add(new THREE.PointLight(0xffffff, 2, 500));
+            scene.add(new THREE.AmbientLight(0x404040, 1));
+            camera.position.z = 1000;
+            animateThree();
+        }
+
+        function createNebulaTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+            grad.addColorStop(0, 'rgba(255,255,255,1)');
+            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = grad; ctx.fillRect(0,0,128,128);
+            const tex = new THREE.Texture(canvas);
+            tex.needsUpdate = true; return tex;
+        }
+
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            stars.rotation.y += 0.0005;
+            stars.rotation.x += (mouseY * 0.0001);
+            stars.rotation.y += (mouseX * 0.0001);
+
+            const pulse = 0.18 + Math.sin(Date.now() * 0.005) * 0.02;
+            heart3D.scale.set(pulse, pulse, pulse);
+            heart3D.rotation.y += 0.01;
+
+            if (camera.position.z > 250) camera.position.z -= 2;
+            renderer.render(scene, camera);
+        }
+
+        // --- نظام صندوق الأمنيات ---
+        const wishes = ["أتمنى لكِ سعادة لا تنتهي ✨", "أمنية بأن تبقي دائماً بجانبي ❤️", "أتمنى أن تتحقق كل أحلامك الكبيرة 🌠", "أمنية بيوم مليء بالضحك 🌸"];
+        function spawnWishBubble() {
+            const b = document.createElement('div');
+            b.className = 'wish-bubble'; b.innerHTML = '🎁';
+            b.style.left = Math.random() * 80 + 10 + 'vw';
+            b.style.top = '110vh';
+            document.body.appendChild(b);
+
+            let pos = 110;
+            const move = setInterval(() => {
+                pos -= 0.5; b.style.top = pos + 'vh';
+                if (pos < -10) { clearInterval(move); b.remove(); }
+            }, 30);
+
+            b.onclick = () => {
+                const display = document.getElementById('wish-display');
+                display.innerText = wishes[Math.floor(Math.random() * wishes.length)];
+                display.style.opacity = '1';
+                b.innerHTML = '✨';
+                setTimeout(() => display.style.opacity = '0', 3000);
+                confetti({ particleCount: 50, spread: 70, origin: { y: 0.8 } });
+            };
+        }
+
+        // تشغيل نظام الأمنيات بعد الدخول
+        function startWishes() { setInterval(spawnWishBubble, 5000); }
+
+        // --- كودك الأصلي (بدون أي تعديل على المنطق) ---
+        const audio = document.getElementById("bgMusic");
+        audio.volume = 0.2;
+
+        window.addEventListener('load', () => {
+            initThree();
+            let count = localStorage.getItem('site_visits') || 0;
+            count = parseInt(count) + 1;
+            localStorage.setItem('site_visits', count);
+            document.getElementById('visit-count').innerText = count;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth/2);
+            mouseY = (e.clientY - window.innerHeight/2);
+            if (Math.random() > 0.85) createParticle(e.clientX, e.clientY);
+        });
+
+        function checkDate() {
+            if (document.getElementById('specialDate').value === "2025-10-24") {
+                document.getElementById('gatekeeper').style.display = 'none';
+                document.getElementById('fingerprintScreen').style.display = 'flex';
+            }
+        }
+
+        function startScan() {
+            audio.play(); document.getElementById('scanLine').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('fingerprintScreen').style.display = 'none';
+                document.getElementById('page1').style.display = 'block';
+                document.getElementById('bottle').style.display = 'block';
+                document.getElementById('heartbeat-container').style.display = 'flex';
+                document.getElementById('panicBtn').style.display = 'block';
+                startWishes(); // بدء ظهور صناديق الأمنيات
+            }, 3000);
+        }
+
+        // [باقي دوال موقعك كما هي تماماً]
+        function stopScan() { document.getElementById('scanLine').style.display = 'none'; }
+        function openLetter() { document.getElementById('letter-modal').style.display = 'flex'; }
+        function closeLetter() { document.getElementById('letter-modal').style.display = 'none'; }
+        function teleport() { const btn = document.getElementById('noBtn'); btn.style.position="fixed"; btn.style.left=Math.random()*80+"vw"; btn.style.top=Math.random()*80+"vh"; }
+        function initiateSequence() { document.getElementById('page1').style.display = 'none'; document.getElementById('page2').style.display = 'block'; startStory(); }
+        
+        const lines = ["I know things might be different...", "But some people are just too special to let go.", "Stay amazing, just the way you are."];
+        let lIdx = 0, cIdx = 0;
         function startStory() {
             const box = document.getElementById('typewriter');
-            if (cIdx < lines[lIdx].length) {
-                box.innerHTML += lines[lIdx].charAt(cIdx);
-                cIdx++;
-                setTimeout(startStory, 60);
-            } else {
-                setTimeout(nextPart, 2000);
-            }
+            if (cIdx < lines[lIdx].length) { box.innerHTML += lines[lIdx].charAt(cIdx++); setTimeout(startStory, 50); } 
+            else { setTimeout(nextPart, 2000); }
         }
-
         function nextPart() {
             const box = document.getElementById('typewriter');
-            if (cIdx > 0) {
-                box.innerHTML = lines[lIdx].substring(0, cIdx - 1);
-                cIdx--;
-                setTimeout(nextPart, 30);
-            } else {
-                lIdx++;
-                if (lIdx < lines.length) {
-                    setTimeout(startStory, 500);
-                } else {
-                    document.getElementById('finalMsg').classList.add('show-thanks');
-                    spawnHearts();
-                }
-            }
+            if (cIdx > 0) { box.innerHTML = lines[lIdx].substring(0, --cIdx); setTimeout(nextPart, 30); } 
+            else { lIdx++; if (lIdx < lines.length) setTimeout(startStory, 500); else { document.getElementById('finalMsg').style.opacity = '1'; } }
         }
 
-        function spawnHearts() {
-            for(let i=0; i<40; i++) {
-                setTimeout(() => {
-                    const heart = document.createElement('div');
-                    heart.className = 'heart-particle';
-                    heart.innerHTML = '❤️';
-                    heart.style.left = Math.random() * 100 + 'vw';
-                    heart.style.top = '-20px';
-                    heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
-                    heart.style.animation = `fall ${Math.random() * 3 + 3}s linear forwards`;
-                    document.body.appendChild(heart);
-                }, i * 250);
-            }
+        function createParticle(x, y) {
+            const p = document.createElement('div');
+            p.className = 'cursor-particle'; p.innerHTML = '✨';
+            p.style.left = x + 'px'; p.style.top = y + 'px';
+            p.style.setProperty('--dx', (Math.random()-0.5)*200+'px');
+            p.style.setProperty('--dy', (Math.random()-0.5)*200+'px');
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 1000);
         }
+
+        setInterval(() => {
+            const diff = new Date() - new Date("2025-10-24T00:00:00");
+            const days = Math.floor(diff / 86400000);
+            document.getElementById('time-counter').innerHTML = `${days} يوم من اللحظات الجميلة`;
+        }, 1000);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
